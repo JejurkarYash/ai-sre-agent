@@ -1,0 +1,7 @@
+{  
+ "name":"ABC Backend Service",
+ "description":"Handles all backend operations for ABC application",
+  "serviceID":"srv-d4723eodl3ps73f5c5vg",
+   "ownerID":"tea-cu3uis9u0jms73dpkqkg",
+    "channels":["slack"] 
+}

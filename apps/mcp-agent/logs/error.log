@@ -1,0 +1,18 @@
+2026-02-11T08:00:12.345Z [INFO] Server started on port 3000
+2026-02-11T08:00:12.567Z [INFO] Connected to database successfully
+2026-02-11T08:00:15.123Z [INFO] GET /api/health - 200 OK (12ms)
+2026-02-11T08:01:03.789Z [INFO] POST /api/auth/login - 200 OK (85ms)
+2026-02-11T08:01:45.234Z [INFO] GET /api/users/42 - 200 OK (34ms)
+2026-02-11T08:02:10.456Z [WARN] Slow query detected: SELECT * FROM orders WHERE user_id=42 (1523ms)
+2026-02-11T08:02:33.101Z [INFO] GET /api/orders - 200 OK (102ms)
+2026-02-11T08:03:07.890Z [ERROR] TypeError: Cannot read properties of undefined (reading 'email') at UserService.getProfile (/app/src/services/user.ts:47:22)
+2026-02-11T08:03:07.891Z [ERROR] Stack trace: at async RouteHandler (/app/src/routes/users.ts:15:10)
+2026-02-11T08:03:22.654Z [INFO] GET /api/products - 200 OK (45ms)
+2026-02-11T08:04:01.332Z [INFO] POST /api/orders - 201 Created (156ms)
+2026-02-11T08:04:45.778Z [INFO] GET /api/health - 200 OK (8ms)
+2026-02-11T08:05:12.999Z [WARN] Deprecated API endpoint called: /api/v1/users
+2026-02-11T08:05:30.112Z [ERROR] ECONNREFUSED: Failed to connect to Redis at 127.0.0.1:6379 - Connection refused
+2026-02-11T08:05:30.115Z [INFO] Falling back to in-memory cache
+2026-02-11T08:06:00.443Z [INFO] GET /api/products/99 - 200 OK (22ms)
+2026-02-11T08:06:15.667Z [INFO] Scheduled job "cleanup-sessions" completed in 340ms
+2026-02-11T08:07:00.001Z [INFO] GET /api/health - 200 OK (5ms)

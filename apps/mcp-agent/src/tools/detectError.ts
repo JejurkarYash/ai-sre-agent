@@ -38,8 +38,7 @@ export const detectError = async (logs: string) => {
   try {
     const response = await ai.models.generateContent({
       model: MODEL,
-      config:{
-
+      config: {
         systemInstruction: systemInstruction,
       },
       contents: [
@@ -50,11 +49,16 @@ export const detectError = async (logs: string) => {
       ],
     });
 
-    const text: string | undefined = response.text;
+    let text: string | undefined = response.text;
     console.log("Raw AI Response:", text);
     if (!text) throw new Error("No response from AI");
+
+    // Strip markdown code fences if present
+    text = text.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+
     return JSON.parse(text);
   } catch (err) {
-    console.log("Error in detectError", err);
+    console.error("Error in detectError", err);
+    return { errorFound: false, errors: [] };
   }
 };

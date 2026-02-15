@@ -1,135 +1,158 @@
-# Turborepo starter
+# Log Auto-Fix — AI-Powered SRE Monitor Agent
 
-This Turborepo starter is maintained by the Turborepo core team.
+An intelligent SRE monitoring pipeline that automatically fetches logs from [Render](https://render.com), detects errors using [Gemini AI](https://ai.google.dev/), suggests fixes, and sends alerts to Slack — all exposed as a single MCP tool.
 
-## Using this example
-
-Run the following command:
-
-```sh
-npx create-turbo@latest
-```
-
-## What's inside?
-
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
+## How It Works
 
 ```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+Render Logs → Gemini (Detect Errors) → Gemini (Suggest Fixes) → Slack Notification
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+The MCP server exposes a single tool — `runFullPipeline` — that runs the entire workflow:
+
+1. **Fetch Logs** — Pulls recent logs from your Render service via the Render API
+2. **Detect Errors** — Sends logs to Gemini 2.5 Flash to identify errors, root causes, and error types
+3. **Suggest Fixes** — Sends detected errors back to Gemini to generate actionable fix suggestions
+4. **Notify via Slack** — Sends a formatted Slack alert for each error with its suggested fix
+
+## Project Structure
 
 ```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+apps/
+  mcp-agent/              # The MCP server (core of the project)
+    src/
+      index.ts            # MCP server setup & runFullPipeline tool
+      lib/
+        gemini.ts         # Gemini AI client config
+      tools/
+        getRenderLogs.ts  # Fetches logs from Render API
+        detectError.ts    # AI-powered error detection
+        suggestFix.ts     # AI-powered fix suggestions
+        notify/
+          notify.ts       # Notification orchestrator
+          slack.ts        # Slack webhook integration
+    services.json         # Service config (name, IDs, channels)
+  dashboard/              # Dashboard app
+  workflows/              # Workflow definitions
+packages/
+  eslint-config/          # Shared ESLint config
+  typescript-config/      # Shared TypeScript config
+  ui/                     # Shared UI components
 ```
 
-### Develop
+## Tech Stack
 
-To develop all apps and packages, run the following command:
+- **Runtime:** Node.js + TypeScript
+- **MCP SDK:** `@modelcontextprotocol/sdk` (Streamable HTTP transport, stateless mode)
+- **AI:** Google Gemini 2.5 Flash via `@google/genai`
+- **Server:** Express.js
+- **Notifications:** Slack Incoming Webhooks
+- **Log Source:** Render API
+- **Monorepo:** Turborepo + pnpm
 
-```
-cd my-turborepo
+## Getting Started
 
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
+### Prerequisites
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
+- Node.js 18+
+- pnpm
+- A [Render](https://render.com) account with API access
+- A [Google AI](https://ai.google.dev/) API key (Gemini)
+- A [Slack Incoming Webhook](https://api.slack.com/messaging/webhooks) URL
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+### 1. Install dependencies
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+```bash
+pnpm install
 ```
 
-### Remote Caching
+### 2. Configure environment variables
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+Create `apps/mcp-agent/.env`:
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+```env
+RENDER_API_KEY=your_render_api_key
+RENDER_SERVICE_ID=your_render_service_id
+RENDER_OWNER_ID=your_render_owner_id
+GEMINI_API_KEY=your_gemini_api_key
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
+PORT=3001
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+### 3. Configure your service
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+Edit `apps/mcp-agent/services.json`:
 
+```json
+{
+  "name": "Your Service Name",
+  "description": "Description of your service",
+  "serviceID": "srv-...",
+  "ownerID": "tea-...",
+  "channels": ["slack"]
+}
 ```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+### 4. Run the MCP server
+
+```bash
+cd apps/mcp-agent
+pnpm dev
 ```
 
-## Useful Links
+The server starts at `http://localhost:3001/mcp` with a health check at `http://localhost:3001/health`.
 
-Learn more about the power of Turborepo:
+## Usage
 
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+### With an MCP Client (Archestra, Claude, etc.)
+
+Connect your MCP client to `http://localhost:3001/mcp` and call the `runFullPipeline` tool. No arguments needed.
+
+### With curl
+
+**List available tools:**
+```bash
+curl -s http://localhost:3001/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | jq .
+```
+
+**Run the full pipeline:**
+```bash
+curl -s http://localhost:3001/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"runFullPipeline","arguments":{}}}' | jq .
+```
+
+## Pipeline Output
+
+The tool returns a JSON response with:
+
+```json
+{
+  "pipeline": "completed",
+  "steps": [
+    "✅ Step 1 — Fetched logs (12345 chars)",
+    "✅ Step 2 — Error detection complete: errorFound=true, count=2",
+    "✅ Step 3 — Fix suggestions generated: 2 fixes",
+    "✅ Step 4 — Sent 2/2 notifications"
+  ],
+  "errors": { "errorFound": true, "errors": [...] },
+  "fixes": { "fixes": [...] },
+  "notifications": [...]
+}
+```
+
+## Slack Alert Format
+
+Each error triggers a Slack message with:
+
+- **Service** name
+- **Severity** (memory, crash, timeout, port-issue, etc.)
+- **Error message**
+- **Root cause**
+- **Suggested fix**
+
+## License
+
+ISC

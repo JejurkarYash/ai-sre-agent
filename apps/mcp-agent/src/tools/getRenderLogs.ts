@@ -4,6 +4,7 @@ dotenv.config();
 
 export const getRenderLogs = async () => {
   try {
+    console.log("Fetching logs from Render...");
     const API_KEY = process.env.RENDER_API_KEY;
     const SERVICE_ID = process.env.RENDER_SERVICE_ID;
     const OWNER_ID = process.env.RENDER_OWNER_ID;
@@ -15,7 +16,7 @@ export const getRenderLogs = async () => {
     // for getting past 24 hours logs
     const now = new Date();
     const twentyFourHoursAgo = new Date(
-      now.getTime() - 24 * 60 * 60 * 1000
+      now.getTime() - 7 * 24 * 60 * 60 * 1000
     );
 
     const response = await axios.get(
